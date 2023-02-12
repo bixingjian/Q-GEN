@@ -133,4 +133,4 @@ test.py
 .idea/
 
 **/squad1/*
-**/squad_preprocessed/*
+**/squad1_preprocessed/*

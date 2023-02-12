@@ -28,7 +28,7 @@ df = df.dropna()
 #Dropping duplicates
 # df = df.drop_duplicates(subset=['context_sent']).reset_index(drop=True)
 # print(df.shape, ' :dropping duplicate sentence')
-df.rename(columns = {context_name: 'context'}, inplace=True)
+df.rename(columns={context_name: 'context'}, inplace=True)
 df.drop(columns=[drop_context, 'answer_start', 'answer_end'], inplace=True) #answer_start and answer_end are not needed and are for the paragraph
 # print(df.shape, ' :final')
 
@@ -41,9 +41,9 @@ print(train_df.shape, 'train_df')
 print(dev_df.shape, 'dev_df')
 print(test_df.shape, 'test_df')
 
-train_df.to_csv("./dataset/squad_preprocessed/train_df.csv", index=False)
-dev_df.to_csv("./dataset/squad_preprocessed/dev_df.csv", index=False)
-test_df.to_csv("./dataset/squad_preprocessed/test_df.csv", index=False)
+train_df.to_csv("./dataset/squad1_preprocessed/train_df.csv", index=False)
+dev_df.to_csv("./dataset/squad1_preprocessed/dev_df.csv", index=False)
+test_df.to_csv("./dataset/squad1_preprocessed/test_df.csv", index=False)
 
 
 print(squad_dev_df.head())
