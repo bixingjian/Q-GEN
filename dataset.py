@@ -1,3 +1,12 @@
+from typing import List, Dict
+import pandas as pd
+from torch.utils.data import Dataset, DataLoader
+from transformers import (
+    AdamW,
+    T5ForConditionalGeneration,
+    T5TokenizerFast as T5Tokenizer
+)
+
 SEP_TOKEN = '<sep>'
 MASKING_CHANCE = 0.3  # 30% chance to replace the answer with '[MASK]'
 

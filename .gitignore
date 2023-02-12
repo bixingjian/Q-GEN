@@ -132,5 +132,15 @@ test.py
 
 .idea/
 
-**/squad1/*
-**/squad1_preprocessed/*
+**/squad1/dev_df.csv
+**/squad1/train_df.csv
+
+**/squad1_preprocessed/dev_df.csv
+**/squad1_preprocessed/train_df.csv
+**/squad1_preprocessed/test_df.csv
+
+
+**/pt_models/t5-base/*
+**/pt_models/t5-small/*
+!**/pt_models/t5-base/config.json
+!**/pt_models/t5-small/config.json

@@ -5,6 +5,7 @@ from transformers import (
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
 )
+from dataset import QGDataset
 pl.seed_everything(42)
 
 
@@ -49,6 +50,7 @@ class QGDataModule(pl.LightningDataModule):
 MODEL_NAME = 't5-small'
 SOURCE_MAX_TOKEN_LEN = 300
 TARGET_MAX_TOKEN_LEN = 80
+SEP_TOKEN = '<sep>'
 
 N_EPOCHS = 5
 BATCH_SIZE = 16
@@ -67,3 +69,18 @@ print('Taking', DF_TAKE_PERCENTAGE * 100, '%')
 print(TAKE_TRAIN, 'of', len(train_df))
 print(TAKE_DEV, 'of', len(dev_df))
 print(TAKE_TEST, 'of', len(test_df))
+
+
+print(train_df[:TAKE_TRAIN].shape, dev_df[:TAKE_DEV].shape, test_df[:TAKE_TEST].shape)
+
+tokenizer = T5Tokenizer.from_pretrained("./pt_models/t5-small")
+# tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
+print('tokenizer len before: ', len(tokenizer))
+tokenizer.add_tokens(SEP_TOKEN)
+print('tokenizer len after: ', len(tokenizer))
+TOKENIZER_LEN = len(tokenizer)
+
+data_module = QGDataModule(train_df[:TAKE_TRAIN], dev_df[:TAKE_DEV], test_df[:TAKE_TEST], tokenizer, BATCH_SIZE, SOURCE_MAX_TOKEN_LEN, TARGET_MAX_TOKEN_LEN)
+data_module.setup()
+
+print(train_df[:TAKE_TRAIN].shape, dev_df[:TAKE_DEV].shape, test_df[:TAKE_TEST].shape)
