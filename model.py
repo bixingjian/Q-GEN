@@ -1,3 +1,23 @@
+import pytorch_lightning as pl
+from transformers import (
+    AdamW,
+    T5ForConditionalGeneration,
+    T5TokenizerFast as T5Tokenizer
+)
+
+SEP_TOKEN = '<sep>'
+MODEL_NAME = "./pt_models/t5-small"
+tokenizer = T5Tokenizer.from_pretrained("./pt_models/t5-small")
+# tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
+print('tokenizer len before: ', len(tokenizer))
+tokenizer.add_tokens(SEP_TOKEN)
+print('tokenizer len after: ', len(tokenizer))
+TOKENIZER_LEN = len(tokenizer)
+N_EPOCHS = 5
+BATCH_SIZE = 16
+LEARNING_RATE = 0.0001
+
+
 class QGModel(pl.LightningModule):
     def __init__(self):
         super().__init__()

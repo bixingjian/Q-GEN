@@ -1,3 +1,4 @@
+import numpy as np
 from typing import List, Dict
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
@@ -9,6 +10,14 @@ from transformers import (
 
 SEP_TOKEN = '<sep>'
 MASKING_CHANCE = 0.3  # 30% chance to replace the answer with '[MASK]'
+SEP_TOKEN = '<sep>'
+MODEL_NAME = "./pt_models/t5-small"
+tokenizer = T5Tokenizer.from_pretrained("./pt_models/t5-small")
+# tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
+print('tokenizer len before: ', len(tokenizer))
+tokenizer.add_tokens(SEP_TOKEN)
+print('tokenizer len after: ', len(tokenizer))
+TOKENIZER_LEN = len(tokenizer)
 
 
 class QGDataset(Dataset):
