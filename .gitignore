@@ -128,7 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-test.py
 
 .idea/
 
@@ -144,3 +143,10 @@ test.py
 **/pt_models/t5-small/*
 !**/pt_models/t5-base/config.json
 !**/pt_models/t5-small/config.json
+
+!**/checkpoints/checkpoints.md
+**/checkpoints/*
+
+
+**/race/**
+!**/race.md

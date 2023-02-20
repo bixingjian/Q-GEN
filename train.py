@@ -52,4 +52,6 @@ trainer = pl.Trainer(
 model = QGModel()
 # model = QGModel.load_from_checkpoint('checkpoints/best-checkpoint-v42.ckpt')
 
+
 trainer.fit(model, data_module)
+# trainer.test()
