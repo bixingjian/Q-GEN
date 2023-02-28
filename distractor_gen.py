@@ -17,11 +17,13 @@ from transformers import (
     T5TokenizerFast as T5Tokenizer
     )
 
+pl.seed_everything(42)
+
 from datasets import load_dataset
 
 dataset = load_dataset("race", 'all')
 
-print(dataset['train']['article'][0])
+print("train.............", dataset['train']['article'][0])
 
 def create_dataset(dataset_split):
     data_rows = []
@@ -167,7 +169,7 @@ SOURCE_MAX_TOKEN_LEN = 512
 TARGET_MAX_TOKEN_LEN = 64
 
 N_EPOCHS = 20
-BATCH_SIZE = 16 #NOTE changed from 24 to 16
+BATCH_SIZE = 20 #NOTE changed from 24 to 16
 LEARNING_RATE = 0.0001
 
 MODEL_SAVE_NAME = '100200'
@@ -228,7 +230,7 @@ class QGModel(pl.LightningModule):
     
 checkpoint_callback = ModelCheckpoint(
         dirpath='checkpoints',
-        filename='best-checkpoint',
+        filename='best-checkpoint-gen',
         save_top_k=-1,
         verbose=True,
         monitor='val_loss',

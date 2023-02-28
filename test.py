@@ -8,7 +8,6 @@ from transformers import (
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
 )
-from model import QGModel
 
 SOURCE_MAX_TOKEN_LEN = 300
 TARGET_MAX_TOKEN_LEN = 80
