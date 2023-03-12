@@ -15,15 +15,17 @@ from transformers import (
     AdamW,
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
-)
+    )
 
 pl.seed_everything(42)
 
-train_df = pd.read_csv('dataset/race/race_test_df.csv')
-print(train_df["context"][0])
+from datasets import load_dataset
 
-# from datasets import load_dataset
+dataset = load_dataset("race", 'all')
 
-# dataset = load_dataset("race", 'all')
+print(type(dataset))
 
-# print(dataset['train']['options'][0])
+print(len(dataset["train"]))
+
+
+

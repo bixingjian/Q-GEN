@@ -2,16 +2,63 @@ from typing import List, Dict
 import pandas as pd
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
-from model import QGModel
-from data_module import QGDataModule
+# from distractor_gen import QGModel # 要从dis里面导入 因为加入了两个多的token
 from transformers import (
     AdamW,
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
 )
+
+class QGModel(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+        self.model = T5ForConditionalGeneration.from_pretrained(model_name, return_dict=True)
+        self.model.resize_token_embeddings(TOKENIZER_LEN) #resizing after adding new tokens to the tokenizer
+
+    def forward(self, input_ids, attention_mask, labels=None):
+        output = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        return output.loss, output.logits
+
+    def training_step(self, batch, batch_idx):
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
+        labels = batch['labels']
+        loss, output = self(input_ids, attention_mask, labels)
+        self.log('train_loss', loss, prog_bar=True, logger=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
+        labels = batch['labels']
+        loss, output = self(input_ids, attention_mask, labels)
+        self.log('val_loss', loss, prog_bar=True, logger=True)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
+        labels = batch['labels']
+        loss, output = self(input_ids, attention_mask, labels)
+        self.log('test_loss', loss, prog_bar=True, logger=True)
+        return loss
+  
+    def configure_optimizers(self):
+        return AdamW(self.parameters(), lr=LEARNING_RATE)
+    
+    
+print("--------")
+
+SEP_TOKEN = '<sep>'
+SEP1 = '<distractor_1>'
+SEP2 = '<distractor_2>'
 model_name = 't5-small'
 tokenizer = T5Tokenizer.from_pretrained(model_name)
-MODEL_NAME = 't5-small'
+print('tokenizer len before: ', len(tokenizer))
+tokenizer.add_tokens([SEP_TOKEN, SEP1, SEP2])
+print('tokenizer len after: ', len(tokenizer))
+TOKENIZER_LEN = len(tokenizer)
+
 SOURCE_MAX_TOKEN_LEN = 512
 TARGET_MAX_TOKEN_LEN = 64
 N_EPOCHS = 20
@@ -20,15 +67,16 @@ LEARNING_RATE = 0.0001
 MODEL_SAVE_NAME = '100200'
 DF_TAKE_PERCENTAGE = 1
 
+print("--------")
 
 
-checkpoint_path = 'checkpoints/best-checkpoint-gen-v21.ckpt'
+
+checkpoint_path = 'checkpoints-sep_1_2/checkpoint-v15.ckpt'
 
 best_model = QGModel.load_from_checkpoint(checkpoint_path)
 best_model.freeze()
 best_model.eval()
 
-SEP_TOKEN = '<sep>'
 
 print("--------")
 

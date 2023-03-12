@@ -4,7 +4,7 @@ from tqdm.notebook import tqdm
 import json
 import pandas as pd
 import numpy as np
-
+from datasets import load_dataset
 import torch
 from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
@@ -19,11 +19,9 @@ from transformers import (
 
 pl.seed_everything(42)
 
-from datasets import load_dataset
 
 dataset = load_dataset("race", 'all')
 
-print("train.............", dataset['train']['article'][0])
 
 def create_dataset(dataset_split):
     data_rows = []
@@ -53,25 +51,28 @@ def create_dataset(dataset_split):
 race_train_df = create_dataset(dataset['train'])
 race_dev_df = create_dataset(dataset['validation'])
 race_test_df = create_dataset(dataset['test'])
-print(race_train_df.head())
-
 train_df = race_train_df
 dev_df = race_dev_df
 test_df = race_test_df
-
 train_df.to_csv('dataset/race/race_train_df.csv', index=False)
 dev_df.to_csv('dataset/race/race_dev_df.csv', index=False)
 test_df.to_csv('dataset/race/race_test_df.csv', index=False)
 
+SEP_TOKEN = '<sep>'
+SEP1 = '<distractor_1>'
+SEP2 = '<distractor_2>'
 model_name = 't5-small'
-
 tokenizer = T5Tokenizer.from_pretrained(model_name)
+print('tokenizer len before: ', len(tokenizer))
+tokenizer.add_tokens([SEP_TOKEN, SEP1, SEP2])
+print('tokenizer len after: ', len(tokenizer))
+TOKENIZER_LEN = len(tokenizer)
+
 
 train_df = pd.read_csv('dataset/race/race_train_df.csv')
 ev_df = pd.read_csv('dataset/race/race_dev_df.csv')
 test_df = pd.read_csv('dataset/race/race_test_df.csv')
 
-SEP_TOKEN = '<sep>'
 
 class QGDataset(Dataset):
 
@@ -105,7 +106,7 @@ class QGDataset(Dataset):
             )
     
         target_encoding = tokenizer(
-            '{} {} {} {} {}'.format(data_row['incorrect1'], SEP_TOKEN, data_row['incorrect2'], SEP_TOKEN, data_row['incorrect3']),
+            '{} {} {} {} {}'.format(data_row['incorrect1'], SEP1, data_row['incorrect2'], SEP2, data_row['incorrect3']),
             max_length=self.target_max_token_len,
             padding='max_length',
             truncation = True,
@@ -164,12 +165,13 @@ class QGDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=1, num_workers=2)
     
-MODEL_NAME = 't5-small'
+
+
 SOURCE_MAX_TOKEN_LEN = 512
 TARGET_MAX_TOKEN_LEN = 64
 
 N_EPOCHS = 20
-BATCH_SIZE = 20 #NOTE changed from 24 to 16
+BATCH_SIZE = 8 #NOTE changed from 24 to 16
 LEARNING_RATE = 0.0001
 
 MODEL_SAVE_NAME = '100200'
@@ -182,11 +184,7 @@ TAKE_TEST = int(len(test_df) * DF_TAKE_PERCENTAGE)
 
 print(train_df[:TAKE_TRAIN].shape, dev_df[:TAKE_DEV].shape, test_df[:TAKE_TEST].shape)
 
-tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
-print('tokenizer len before: ', len(tokenizer))
-tokenizer.add_tokens(SEP_TOKEN)
-print('tokenizer len after: ', len(tokenizer))
-TOKENIZER_LEN = len(tokenizer)
+
 
 data_module = QGDataModule(train_df[:TAKE_TRAIN], dev_df[:TAKE_DEV], test_df[:TAKE_TEST], tokenizer, BATCH_SIZE, SOURCE_MAX_TOKEN_LEN, TARGET_MAX_TOKEN_LEN)
 data_module.setup()
@@ -194,7 +192,7 @@ data_module.setup()
 class QGModel(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.model = T5ForConditionalGeneration.from_pretrained(MODEL_NAME, return_dict=True)
+        self.model = T5ForConditionalGeneration.from_pretrained(model_name, return_dict=True)
         self.model.resize_token_embeddings(TOKENIZER_LEN) #resizing after adding new tokens to the tokenizer
 
     def forward(self, input_ids, attention_mask, labels=None):
@@ -229,8 +227,8 @@ class QGModel(pl.LightningModule):
         return AdamW(self.parameters(), lr=LEARNING_RATE)
     
 checkpoint_callback = ModelCheckpoint(
-        dirpath='checkpoints',
-        filename='best-checkpoint-gen',
+        dirpath='checkpoints-sep_1_2',
+        filename='checkpoint',
         save_top_k=-1,
         verbose=True,
         monitor='val_loss',
