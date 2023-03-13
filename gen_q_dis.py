@@ -1,33 +1,24 @@
 import pandas as pd
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
-from model import QGModel
-from data_module import QGDataModule
+from question_model import QGModel
+from question_data_module import QGDataModule
 from transformers import (
     AdamW,
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
 )
 
-SOURCE_MAX_TOKEN_LEN = 300
-TARGET_MAX_TOKEN_LEN = 80
+Q_SOURCE_MAX_TOKEN_LEN = 300
+Q_TARGET_MAX_TOKEN_LEN = 80
 SEP_TOKEN = '<sep>'
-N_EPOCHS = 5
-BATCH_SIZE = 16
-LEARNING_RATE = 0.0001
-DF_TAKE_PERCENTAGE = 1
-train_df = pd.read_csv("./dataset/squad1_preprocessed/train_df.csv")
-dev_df = pd.read_csv("./dataset/squad1_preprocessed/dev_df.csv")
-test_df = pd.read_csv("./dataset/squad1_preprocessed/test_df.csv")
-TAKE_TRAIN = int(len(train_df) * DF_TAKE_PERCENTAGE)
-TAKE_DEV = int(len(dev_df) * DF_TAKE_PERCENTAGE)
-TAKE_TEST = int(len(test_df) * DF_TAKE_PERCENTAGE)
-tokenizer = T5Tokenizer.from_pretrained("./pt_models/t5-small")
+
+q_tokenizer = T5Tokenizer.from_pretrained("./pt_models/t5-small")
 # tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
-print('tokenizer len before: ', len(tokenizer))
-tokenizer.add_tokens(SEP_TOKEN)
-print('tokenizer len after: ', len(tokenizer))
-TOKENIZER_LEN = len(tokenizer)
+print('tokenizer len before: ', len(q_tokenizer))
+q_tokenizer.add_tokens(SEP_TOKEN)
+print('tokenizer len after: ', len(q_tokenizer))
+TOKENIZER_LEN = len(q_tokenizer)
 
 checkpoint_path = 'checkpoints/best-checkpoint-v4.ckpt'
 
@@ -37,9 +28,9 @@ best_model.eval()
 
 
 def generate(qgmodel: QGModel, answer: str, context: str) -> str:
-    source_encoding = tokenizer(
+    source_encoding = q_tokenizer(
         '{} {} {}'.format(answer, SEP_TOKEN, context),
-        max_length=SOURCE_MAX_TOKEN_LEN,
+        max_length=Q_SOURCE_MAX_TOKEN_LEN,
         padding='max_length',
         truncation=True,
         return_attention_mask=True,
@@ -51,7 +42,7 @@ def generate(qgmodel: QGModel, answer: str, context: str) -> str:
         input_ids=source_encoding['input_ids'],
         attention_mask=source_encoding['attention_mask'],
         num_beams=1,
-        max_length=TARGET_MAX_TOKEN_LEN,
+        max_length=Q_TARGET_MAX_TOKEN_LEN,
         repetition_penalty=2.5,
         length_penalty=1.0,
         early_stopping=True,
@@ -59,7 +50,7 @@ def generate(qgmodel: QGModel, answer: str, context: str) -> str:
     )
 
     preds = {
-        tokenizer.decode(generated_id, skip_special_tokens=False, clean_up_tokenization_spaces=True)
+        q_tokenizer.decode(generated_id, skip_special_tokens=False, clean_up_tokenization_spaces=True)
         for generated_id in generated_ids
     }
 
@@ -75,17 +66,6 @@ def show_result(generated: str, answer: str, context:str, original_question: str
     print('Answer: ', answer)
     print('Conext: ', context)
     print('-----------------------------')
-
-
-sample_question = test_df.iloc[42]
-generated = generate(best_model, sample_question['answer_text'], sample_question['context'])
-show_result(generated, sample_question['answer_text'], sample_question['context'], sample_question['question'])
-
-
-context = 'Oxygen is the chemical element with the symbol O and atomic number 8.'
-answer = 'Oxygen'
-generated = generate(best_model, answer, context)
-show_result(generated, answer, context)
 
 
 def show_te_result(te_answer="[MASK]"):
@@ -114,135 +94,3 @@ show_te_result("crackdown")
 show_te_result("suppression")
 
 
-from typing import List, Dict
-import pandas as pd
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
-# from distractor_gen import QGModel # 要从dis里面导入 因为加入了两个多的token
-from transformers import (
-    AdamW,
-    T5ForConditionalGeneration,
-    T5TokenizerFast as T5Tokenizer
-)
-
-class QGModel(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-        self.model = T5ForConditionalGeneration.from_pretrained(model_name, return_dict=True)
-        self.model.resize_token_embeddings(TOKENIZER_LEN) #resizing after adding new tokens to the tokenizer
-
-    def forward(self, input_ids, attention_mask, labels=None):
-        output = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-        return output.loss, output.logits
-
-    def training_step(self, batch, batch_idx):
-        input_ids = batch['input_ids']
-        attention_mask = batch['attention_mask']
-        labels = batch['labels']
-        loss, output = self(input_ids, attention_mask, labels)
-        self.log('train_loss', loss, prog_bar=True, logger=True)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        input_ids = batch['input_ids']
-        attention_mask = batch['attention_mask']
-        labels = batch['labels']
-        loss, output = self(input_ids, attention_mask, labels)
-        self.log('val_loss', loss, prog_bar=True, logger=True)
-        return loss
-
-    def test_step(self, batch, batch_idx):
-        input_ids = batch['input_ids']
-        attention_mask = batch['attention_mask']
-        labels = batch['labels']
-        loss, output = self(input_ids, attention_mask, labels)
-        self.log('test_loss', loss, prog_bar=True, logger=True)
-        return loss
-  
-    def configure_optimizers(self):
-        return AdamW(self.parameters(), lr=LEARNING_RATE)
-    
-    
-print("--------")
-
-SEP_TOKEN = '<sep>'
-SEP1 = '<distractor_1>'
-SEP2 = '<distractor_2>'
-model_name = 't5-small'
-tokenizer = T5Tokenizer.from_pretrained(model_name)
-print('tokenizer len before: ', len(tokenizer))
-tokenizer.add_tokens([SEP_TOKEN, SEP1, SEP2])
-print('tokenizer len after: ', len(tokenizer))
-TOKENIZER_LEN = len(tokenizer)
-
-SOURCE_MAX_TOKEN_LEN = 512
-TARGET_MAX_TOKEN_LEN = 64
-N_EPOCHS = 20
-BATCH_SIZE = 16 #NOTE changed from 24 to 16
-LEARNING_RATE = 0.0001
-MODEL_SAVE_NAME = '100200'
-DF_TAKE_PERCENTAGE = 1
-
-print("--------")
-
-
-
-checkpoint_path = 'checkpoints-sep_1_2/checkpoint-v15.ckpt'
-
-best_model = QGModel.load_from_checkpoint(checkpoint_path)
-best_model.freeze()
-best_model.eval()
-
-
-print("--------")
-
-def generate(qgmodel: QGModel, answer: str, context: str) -> str:
-    source_encoding = tokenizer(
-        '{} {} {}'.format(answer, SEP_TOKEN, context),
-        max_length=SOURCE_MAX_TOKEN_LEN,
-        padding='max_length',
-        truncation=True,
-        return_attention_mask=True,
-        add_special_tokens=True,
-        return_tensors='pt'
-    )
-
-    generated_ids = qgmodel.model.generate(
-        input_ids=source_encoding['input_ids'],
-        attention_mask=source_encoding['attention_mask'],
-        num_beams=1,
-        max_length=TARGET_MAX_TOKEN_LEN,
-        repetition_penalty=2.5,
-        length_penalty=1.0,
-        early_stopping=True,
-        use_cache=True
-    )
-
-    preds = {
-        tokenizer.decode(generated_id, skip_special_tokens=False, clean_up_tokenization_spaces=True)
-        for generated_id in generated_ids
-    }
-
-    return ''.join(preds)
-
-def show_result(generated: str, answer: str, context:str, incorrect: List[str] = [], question: str = ''):
-    print('Context:')
-    print(context)
-    print()
-
-    if question: print('Question: ', question)
-    print('Answer : ', answer)
-
-    print()
-    print('Original : ', incorrect)
-    print('Generated: ', generated)
-    print('-----------------------------')
-
-
-print("--------")
-test_df = pd.read_csv("./dataset/race/race_test_df.csv")
-sample = test_df.iloc[42]
-print(sample['context'])
-
-generated = generate(best_model, sample['correct'], sample['context'])
-show_result(generated, sample['correct'], sample['context'], [sample['incorrect1'], sample['incorrect2'], sample['incorrect3']], sample['question'])

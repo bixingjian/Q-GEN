@@ -1,8 +1,8 @@
 import pandas as pd
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
-from model import QGModel
-from data_module import QGDataModule
+from question_model import QGModel
+from question_data_module import QGDataModule
 from transformers import (
     AdamW,
     T5ForConditionalGeneration,

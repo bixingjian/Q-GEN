@@ -2,49 +2,49 @@ from typing import List, Dict
 import pandas as pd
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
-# from distractor_gen import QGModel # 要从dis里面导入 因为加入了两个多的token
+# from model import QGModel # just write the class, cause it contains a TOKENIZER_LEN needed to be set.
 from transformers import (
     AdamW,
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
 )
 
-# class QGModel(pl.LightningModule):
-#     def __init__(self):
-#         super().__init__()
-#         self.model = T5ForConditionalGeneration.from_pretrained(model_name, return_dict=True)
-#         self.model.resize_token_embeddings(TOKENIZER_LEN) #resizing after adding new tokens to the tokenizer
+class QGModel(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+        self.model = T5ForConditionalGeneration.from_pretrained(model_name, return_dict=True)
+        self.model.resize_token_embeddings(TOKENIZER_LEN) #resizing after adding new tokens to the tokenizer
 
-#     def forward(self, input_ids, attention_mask, labels=None):
-#         output = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-#         return output.loss, output.logits
+    def forward(self, input_ids, attention_mask, labels=None):
+        output = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        return output.loss, output.logits
 
-#     def training_step(self, batch, batch_idx):
-#         input_ids = batch['input_ids']
-#         attention_mask = batch['attention_mask']
-#         labels = batch['labels']
-#         loss, output = self(input_ids, attention_mask, labels)
-#         self.log('train_loss', loss, prog_bar=True, logger=True)
-#         return loss
+    def training_step(self, batch, batch_idx):
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
+        labels = batch['labels']
+        loss, output = self(input_ids, attention_mask, labels)
+        self.log('train_loss', loss, prog_bar=True, logger=True)
+        return loss
 
-#     def validation_step(self, batch, batch_idx):
-#         input_ids = batch['input_ids']
-#         attention_mask = batch['attention_mask']
-#         labels = batch['labels']
-#         loss, output = self(input_ids, attention_mask, labels)
-#         self.log('val_loss', loss, prog_bar=True, logger=True)
-#         return loss
+    def validation_step(self, batch, batch_idx):
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
+        labels = batch['labels']
+        loss, output = self(input_ids, attention_mask, labels)
+        self.log('val_loss', loss, prog_bar=True, logger=True)
+        return loss
 
-#     def test_step(self, batch, batch_idx):
-#         input_ids = batch['input_ids']
-#         attention_mask = batch['attention_mask']
-#         labels = batch['labels']
-#         loss, output = self(input_ids, attention_mask, labels)
-#         self.log('test_loss', loss, prog_bar=True, logger=True)
-#         return loss
+    def test_step(self, batch, batch_idx):
+        input_ids = batch['input_ids']
+        attention_mask = batch['attention_mask']
+        labels = batch['labels']
+        loss, output = self(input_ids, attention_mask, labels)
+        self.log('test_loss', loss, prog_bar=True, logger=True)
+        return loss
   
-#     def configure_optimizers(self):
-#         return AdamW(self.parameters(), lr=LEARNING_RATE)
+    def configure_optimizers(self):
+        return AdamW(self.parameters(), lr=LEARNING_RATE)
     
     
 print("--------")
@@ -71,7 +71,7 @@ print("--------")
 
 
 
-checkpoint_path = 'checkpoints-sep_1_2/checkpoint-v15.ckpt'
+checkpoint_path = 'checkpoints_gen_sep_1_2/checkpoint-v15.ckpt'
 
 best_model = QGModel.load_from_checkpoint(checkpoint_path)
 best_model.freeze()

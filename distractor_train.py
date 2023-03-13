@@ -227,7 +227,7 @@ class QGModel(pl.LightningModule):
         return AdamW(self.parameters(), lr=LEARNING_RATE)
     
 checkpoint_callback = ModelCheckpoint(
-        dirpath='checkpoints-sep_1_2',
+        dirpath='checkpoints_gen_sep_1_2',
         filename='checkpoint',
         save_top_k=-1,
         verbose=True,

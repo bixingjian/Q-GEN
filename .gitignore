@@ -146,7 +146,7 @@ dmypy.json
 
 !**/checkpoints/checkpoints.md
 **/checkpoints/*
-**/checkpoints-sep_1_2/*
+**/checkpoints_gen_sep_1_2/*
 
 **/race/**
 !**/race.md

@@ -5,7 +5,7 @@ from transformers import (
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
 )
-from dataset import QGDataset
+from question_dataset import QGDataset
 from torch.utils.data import Dataset, DataLoader
 
 
