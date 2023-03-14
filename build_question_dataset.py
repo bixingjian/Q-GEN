@@ -1,53 +1,39 @@
 import pandas as pd
-import numpy as np
-
+from tqdm.notebook import tqdm
+from datasets import load_dataset
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
-from sklearn.model_selection import train_test_split
-from transformers import (
-    AdamW,
-    T5ForConditionalGeneration,
-    T5TokenizerFast as T5Tokenizer
-)
+from transformers import T5TokenizerFast as T5Tokenizer
 
 pl.seed_everything(42)
 
-squad_train_df = pd.read_csv('./dataset/squad1/train_df.csv')
-# print(squad_train_df.shape)
-squad_dev_df = pd.read_csv('./dataset/squad1/dev_df.csv')
-# print(squad_dev_df.shape)
+def create_dataset(dataset_split): 
+    data_rows = []
+    for i in tqdm(range(len(dataset_split))):
+        cur_context = dataset_split[i]['story_text']
+        cur_question = dataset_split[i]['question']
 
-# Using paragraph
-context_name = 'context_para'
-drop_context = 'context_sent'
+        cur_answer_start_index = int(qa_dataset["train"][0]["answer_token_ranges"].split(":")[0])
+        cur_answer_end_inedx = int(qa_dataset["train"][0]["answer_token_ranges"].split(":")[1])
+        cur_answer = dataset_split[i]["story_text"].split()[cur_answer_start_index : cur_answer_end_inedx] # in the github issue, the author said the text is separated by space.
 
-df = squad_train_df.copy()
-# print(df.shape, ' :copy')
-df = df.dropna()
-# print(df.shape, ' :drop na')
-#Dropping duplicates
-# df = df.drop_duplicates(subset=['context_sent']).reset_index(drop=True)
-# print(df.shape, ' :dropping duplicate sentence')
-df.rename(columns={context_name: 'context'}, inplace=True)
-df.drop(columns=[drop_context, 'answer_start', 'answer_end'], inplace=True) #answer_start and answer_end are not needed and are for the paragraph
-# print(df.shape, ' :final')
+        data_rows.append({
+            'context': cur_context,
+            'question': cur_question,
+            'answer_text': cur_answer
+        })
 
-train_df = df[11877:]
-dev_df = squad_dev_df.copy()
-dev_df.rename(columns={context_name: 'context'}, inplace=True)
-dev_df.drop(columns=[drop_context, 'answer_start', 'answer_end'], inplace=True)
-test_df = df[:11877]
-print(train_df.shape, 'train_df')
-print(dev_df.shape, 'dev_df')
-print(test_df.shape, 'test_df')
+    return pd.DataFrame(data_rows)
 
-train_df.to_csv("./dataset/squad1_preprocessed/train_df.csv", index=False)
-dev_df.to_csv("./dataset/squad1_preprocessed/dev_df.csv", index=False)
-test_df.to_csv("./dataset/squad1_preprocessed/test_df.csv", index=False)
+# get the dataset from huggingface. still need to follow the steps in their github repo.
+qa_dataset = load_dataset("newsqa", data_dir="./dataset/newsqa") # in train: features: ['story_id', 'story_text', 'question', 'answer_token_ranges'],num_rows: 92549
 
+question_train_df = create_dataset(qa_dataset['train'])
+question_dev_df = create_dataset(qa_dataset['validation'])
+question_test_df = create_dataset(qa_dataset['test'])
 
-print(squad_dev_df.head())
-
-print("===" *20)
-
-print(dev_df.head())
+train_df = question_train_df
+dev_df = question_dev_df
+test_df = question_test_df
+train_df.to_csv('dataset/newsqa/question_train_df.csv', index=False)
+dev_df.to_csv('dataset/newsqa/question_dev_df.csv', index=False)
+test_df.to_csv('dataset/newsqa/question_test_df.csv', index=False)
