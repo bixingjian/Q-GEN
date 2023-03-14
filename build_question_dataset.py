@@ -2,7 +2,6 @@ import pandas as pd
 from tqdm.notebook import tqdm
 from datasets import load_dataset
 import pytorch_lightning as pl
-from transformers import T5TokenizerFast as T5Tokenizer
 
 pl.seed_everything(42)
 
