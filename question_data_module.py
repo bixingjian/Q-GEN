@@ -1,30 +1,24 @@
 import numpy as np
 import pytorch_lightning as pl
 import pandas as pd
-from transformers import T5Tokenizer
+from transformers import T5TokenizerFast
 from torch.utils.data import Dataset, DataLoader
 
-pl.seed_everything(42)
-
-
-PT_MODEL_PATH = "./pt_models/t5-base"
+PT_MODEL_PATH = "./pt_models/t5-small"
 SOURCE_MAX_TOKEN_LEN = 300
 TARGET_MAX_TOKEN_LEN = 80
 MASKING_CHANCE = 0.3
 SEP_TOKEN = '<sep>' # not using SEP, caused that is already a token in the vocabulary
-BATCH_SIZE = 16
 
-tokenizer = T5Tokenizer.from_pretrained(PT_MODEL_PATH)
-print('tokenizer len before: ', len(tokenizer))
+tokenizer = T5TokenizerFast.from_pretrained(PT_MODEL_PATH)
 tokenizer.add_tokens(SEP_TOKEN)
-print('tokenizer len after: ', len(tokenizer))
 TOKENIZER_LEN = len(tokenizer)
 
 
 class QGDataset(Dataset):
     def __init__(self,
                  data: pd.DataFrame,
-                 tokenizer: T5Tokenizer,
+                 tokenizer: T5TokenizerFast,
                  source_max_token_len: int,
                  target_max_token_len: int
                  ):
@@ -83,7 +77,7 @@ class QGDataModule(pl.LightningDataModule):
             train_df: pd.DataFrame,
             val_df: pd.DataFrame,
             test_df: pd.DataFrame,
-            tokenizer: T5Tokenizer,
+            tokenizer: T5TokenizerFast,
             batch_size,
             source_max_token_len: int,
             target_max_token_len: int
@@ -114,11 +108,4 @@ class QGDataModule(pl.LightningDataModule):
         return DataLoader(self.test_dataset, batch_size=1, num_workers=2)
 
 
-train_df = pd.read_csv("./dataset/squad1_preprocessed/train_df.csv")
-dev_df = pd.read_csv("./dataset/squad1_preprocessed/dev_df.csv")
-test_df = pd.read_csv("./dataset/squad1_preprocessed/test_df.csv")
-print("train df shape {}, dev df shape {}, test df shape {}".format(train_df.shape, dev_df.shape, test_df.shape))
 
-
-data_module = QGDataModule(train_df, dev_df, test_df, tokenizer, BATCH_SIZE, SOURCE_MAX_TOKEN_LEN, TARGET_MAX_TOKEN_LEN)
-data_module.setup()

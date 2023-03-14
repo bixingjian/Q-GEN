@@ -6,22 +6,16 @@ from transformers import (
 )
 
 SEP_TOKEN = '<sep>'
-MODEL_NAME = "./pt_models/t5-small"
-tokenizer = T5Tokenizer.from_pretrained("./pt_models/t5-small")
-# tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
-print('tokenizer len before: ', len(tokenizer))
+PT_MODEL_PATH = "./pt_models/t5-small"
+tokenizer = T5Tokenizer.from_pretrained(PT_MODEL_PATH)
 tokenizer.add_tokens(SEP_TOKEN)
-print('tokenizer len after: ', len(tokenizer))
 TOKENIZER_LEN = len(tokenizer)
-N_EPOCHS = 5
-BATCH_SIZE = 16
 LEARNING_RATE = 0.0001
-
 
 class QGModel(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.model = T5ForConditionalGeneration.from_pretrained(MODEL_NAME, return_dict=True)
+        self.model = T5ForConditionalGeneration.from_pretrained(PT_MODEL_PATH, return_dict=True)
         self.model.resize_token_embeddings(TOKENIZER_LEN)  # resizing after adding new tokens to the tokenizer
 
     def forward(self, input_ids, attention_mask, labels=None):
