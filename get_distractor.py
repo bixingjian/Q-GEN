@@ -71,7 +71,7 @@ print("--------")
 
 
 
-checkpoint_path = 'checkpoints_gen_sep_1_2/checkpoint-v15.ckpt'
+checkpoint_path = 'checkpoints_distractor_sep_1_2/checkpoint-v15.ckpt'
 
 best_model = QGModel.load_from_checkpoint(checkpoint_path)
 best_model.freeze()
@@ -126,7 +126,17 @@ def show_result(generated: str, answer: str, context:str, incorrect: List[str] =
 print("--------")
 test_df = pd.read_csv("./dataset/race/race_test_df.csv")
 sample = test_df.iloc[42]
-print(sample['context'])
 
-generated = generate(best_model, sample['correct'], sample['context'])
-show_result(generated, sample['correct'], sample['context'], [sample['incorrect1'], sample['incorrect2'], sample['incorrect3']], sample['question'])
+te_context = ''' Perhaps no company embodies the ups and downs of Chinese big tech better than its biggest tech firm of all—Tencent. \
+Two years ago the online empire seemed unstoppable. More than a billion Chinese were using its ubiquitous services to pay, play and do much else besides. \
+Its video games, such as “League of Legends”, were global hits. \
+Tencent’s market value exceeded $900bn, and the firm was on track to become China’s first trillion-dollar company. \
+Then the Communist Party said, enough. \
+Xi Jinping, China’s paramount leader, decided that big tech’s side-effects, from distracted teenagers to the diversion of capital from strategically important sectors such as semiconductors, were unacceptable. \
+Tencent was, along with the rest of China’s once-thriving digital industry, caught up in a sweeping 18-month crackdown. \
+'''
+
+te_correct_answer = "the Communist Party"
+
+generated = generate(best_model, te_correct_answer, te_context)
+show_result(generated, te_correct_answer, te_context, ["incorrect1", "incorrect2", "incorrect3"])

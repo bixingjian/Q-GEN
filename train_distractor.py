@@ -22,6 +22,8 @@ pl.seed_everything(42)
 
 dataset = load_dataset("race", 'all')
 
+print(len(dataset['train']))
+
 
 def create_dataset(dataset_split):
     data_rows = []

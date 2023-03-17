@@ -1,35 +1,19 @@
 import pandas as pd
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
 from question_model import QGModel
-from question_data_module import QGDataModule
-from transformers import (
-    AdamW,
-    T5ForConditionalGeneration,
-    T5TokenizerFast as T5Tokenizer
-)
+from transformers import T5TokenizerFast as T5Tokenizer
 
 SOURCE_MAX_TOKEN_LEN = 300
 TARGET_MAX_TOKEN_LEN = 80
 SEP_TOKEN = '<sep>'
-N_EPOCHS = 5
-BATCH_SIZE = 16
-LEARNING_RATE = 0.0001
-DF_TAKE_PERCENTAGE = 1
+PT_MODEL_PATH = "./pt_models/t5-small"
 train_df = pd.read_csv("./dataset/squad1_preprocessed/train_df.csv")
 dev_df = pd.read_csv("./dataset/squad1_preprocessed/dev_df.csv")
 test_df = pd.read_csv("./dataset/squad1_preprocessed/test_df.csv")
-TAKE_TRAIN = int(len(train_df) * DF_TAKE_PERCENTAGE)
-TAKE_DEV = int(len(dev_df) * DF_TAKE_PERCENTAGE)
-TAKE_TEST = int(len(test_df) * DF_TAKE_PERCENTAGE)
-tokenizer = T5Tokenizer.from_pretrained("./pt_models/t5-small")
-# tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
-print('tokenizer len before: ', len(tokenizer))
+tokenizer = T5Tokenizer.from_pretrained(PT_MODEL_PATH)
 tokenizer.add_tokens(SEP_TOKEN)
-print('tokenizer len after: ', len(tokenizer))
 TOKENIZER_LEN = len(tokenizer)
 
-checkpoint_path = 'checkpoints/best-checkpoint-v4.ckpt'
+checkpoint_path = 'checkpoints_question/best-checkpoint-v8.ckpt'
 
 best_model = QGModel.load_from_checkpoint(checkpoint_path)
 best_model.freeze()
@@ -94,7 +78,7 @@ def show_te_result(te_answer="[MASK]"):
     show_result(te_generated, te_answer, te_context)
 
 
-te_context = ''' Perhaps no company embodies the ups and downs of Chinese big tech better than its biggest tech firm of all—Tencent. \
+te_context = ''' Perhaps no company embodies the ups and downs of Chinese big tech better than its biggest tech firm of all — Tencent. \
 Two years ago the online empire seemed unstoppable. More than a billion Chinese were using its ubiquitous services to pay, play and do much else besides. \
 Its video games, such as “League of Legends”, were global hits. \
 Tencent’s market value exceeded $900bn, and the firm was on track to become China’s first trillion-dollar company. \
@@ -104,12 +88,11 @@ Tencent was, along with the rest of China’s once-thriving digital industry, ca
 '''
 
 show_te_result()
-show_te_result()
-show_te_result()
 show_te_result("Xi Jinping")
 show_te_result("Tencent")
 show_te_result("the Communist Party")
 show_te_result("side-effects")
 show_te_result("crackdown")
 show_te_result("suppression")
+show_te_result("online services")
 
