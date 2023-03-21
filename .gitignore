@@ -156,3 +156,7 @@ dmypy.json
 /lightning_logs
 
 **/newsqa/*
+
+try_run.py
+
+result.txt

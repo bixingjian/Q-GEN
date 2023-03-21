@@ -8,6 +8,7 @@ from transformers import (
     T5ForConditionalGeneration,
     T5TokenizerFast as T5Tokenizer
 )
+from context_list import context_list
 
 class QGModel(pl.LightningModule):
     def __init__(self):
@@ -127,16 +128,18 @@ print("--------")
 test_df = pd.read_csv("./dataset/race/race_test_df.csv")
 sample = test_df.iloc[42]
 
-te_context = ''' Perhaps no company embodies the ups and downs of Chinese big tech better than its biggest tech firm of all—Tencent. \
-Two years ago the online empire seemed unstoppable. More than a billion Chinese were using its ubiquitous services to pay, play and do much else besides. \
-Its video games, such as “League of Legends”, were global hits. \
-Tencent’s market value exceeded $900bn, and the firm was on track to become China’s first trillion-dollar company. \
-Then the Communist Party said, enough. \
-Xi Jinping, China’s paramount leader, decided that big tech’s side-effects, from distracted teenagers to the diversion of capital from strategically important sectors such as semiconductors, were unacceptable. \
-Tencent was, along with the rest of China’s once-thriving digital industry, caught up in a sweeping 18-month crackdown. \
-'''
+# test_context = ''' Perhaps no company embodies the ups and downs of Chinese big tech better than its biggest tech firm of all—Tencent. \
+# Two years ago the online empire seemed unstoppable. More than a billion Chinese were using its ubiquitous services to pay, play and do much else besides. \
+# Its video games, such as “League of Legends”, were global hits. \
+# Tencent’s market value exceeded $900bn, and the firm was on track to become China’s first trillion-dollar company. \
+# Then the Communist Party said, enough. \
+# Xi Jinping, China’s paramount leader, decided that big tech’s side-effects, from distracted teenagers to the diversion of capital from strategically important sectors such as semiconductors, were unacceptable. \
+# Tencent was, along with the rest of China’s once-thriving digital industry, caught up in a sweeping 18-month crackdown. \
+# '''
 
-te_correct_answer = "the Communist Party"
+test_context = context_list[2]
 
-generated = generate(best_model, te_correct_answer, te_context)
-show_result(generated, te_correct_answer, te_context, ["incorrect1", "incorrect2", "incorrect3"])
+test_correct_answer = "What is the goal of the rescuer?"
+
+generated = generate(best_model, test_correct_answer, test_context)
+show_result(generated, test_correct_answer, test_context, ["incorrect1", "incorrect2", "incorrect3"])
