@@ -41,16 +41,16 @@ for i in range(10):
 
 
 
-generated_distractor_list = [['Help her to get up early', ' Help her to find a job', ' Help her to recover from the flood'], 
-                             ['Nancy climbed into the school gym and took her to the school.', " Nancy climbed into the helicopter but didn't catch it any more", ' Nancy climbed into the emergency shelter after the flood disappeared'], 
-                             ['They rescued them from the helicopter.', ' They took them to the school gym and set up an emergency shelter', ' They raised them into the helicopter'], 
-                             ['the clothes that we choose to wear have something to do with our values and lifestyles', ' the clothes that we choose to wear are of no importance', ' the clothes that we choose to wear have nothing to do with our values and lifestyles'], 
-                             ['men were not interested in what they wore while women did', " women were not interested in what they wore when men didn't", ' women were very proud of what they wore'], 
-                             ['they are not interested in fashion', " they don't want to be judged", ' they think their values and lifestyles are more important'], 
-                             ['people have changed their clothes to make them more attractive', ' people are more aware of the importance of dress', ' women wear more dresses than men'], 
-                             ['was very busy with his study', ' kissed his mother hello', ' was very hard at math'], 
-                             ['Tommy kissed his mother hello', ' Tommy was a catholic school', ' Tommy was not good at math'], 
-                             ['mistakes are not easy', ' mistakes can be made easily', ' mistakes are not easy to make']]
+generated_distractor_list = [['Help her to get up early', 'Help her to find a job', 'Help her to recover from the flood'], 
+                             ['Nancy climbed into the school gym and took her to the school.', "Nancy climbed into the helicopter but didn't catch it any more", 'Nancy climbed into the emergency shelter after the flood disappeared'], 
+                             ['They rescued them from the helicopter.', 'They took them to the school gym and set up an emergency shelter', 'They raised them into the helicopter'], 
+                             ['the clothes that we choose to wear have something to do with our values and lifestyles', 'the clothes that we choose to wear are of no importance', 'the clothes that we choose to wear have nothing to do with our values and lifestyles'], 
+                             ['men were not interested in what they wore while women did', "women were not interested in what they wore when men didn't", 'women were very proud of what they wore'], 
+                             ['they are not interested in fashion', "they don't want to be judged", 'they think their values and lifestyles are more important'], 
+                             ['people have changed their clothes to make them more attractive', 'people are more aware of the importance of dress', 'women wear more dresses than men'], 
+                             ['was very busy with his study', 'kissed his mother hello', 'was very hard at math'], 
+                             ['Tommy kissed his mother hello', 'Tommy was a catholic school', 'Tommy was not good at math'], 
+                             ['mistakes are not easy', 'mistakes can be made easily', 'mistakes are not easy to make']]
 
 # print(context_list[0])
 # print(question_list[0])
