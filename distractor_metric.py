@@ -1,4 +1,4 @@
-from context_list import context_list, correct_answer_list, incorrect_answer_list, generated_distractor_list
+from context_list import context_list, question_list, correct_answer_list, incorrect_answer_list, generated_distractor_list
 import math
 import re
 from collections import Counter
@@ -88,13 +88,15 @@ for i in range(10):
 
 for i in range(10):
     print(i, "*"*30)
-    print(context_list[i])
-    for j, (dissim, sim, gen_dissim, gen_sim) in enumerate(zip(option_dissim[i],context_sim[i])):
-        print("distracor ",j, ": ", incorrect_answer_list[i][j], "option_dissim: %.2f |" %float(dissim), "context_sim:  %.2f |" %float(sim), "final score:  %.2f | " %float(alpha * dissim + beta * sim))
+    print("CONTEXT: \n", context_list[i])
+    print("QUESTION: \n", question_list[i])
+    print("CORRECT ANSWER: \n", correct_answer_list[i])
+    for j, (dissim, sim) in enumerate(zip(option_dissim[i],context_sim[i])):
+        print("distracor ",j, ": ", incorrect_answer_list[i][j], "\n","option_dissim: %.2f |" %float(dissim), "context_sim:  %.2f |" %float(sim), "final score:  %.2f | " %float(alpha * dissim + beta * sim))
         print("*"*10)
-    for k, (dissim, sim, gen_dissim, gen_sim) in enumerate(zip(gen_option_dissim[i], gen_context_sim[i])):
-        print("gen_distracor ",k, ": ", generated_distractor_list[i][k], "gen_option_dissim: %.2f |" %float(gen_dissim), "gen_context_sim:  %.2f |" %float(gen_sim), "gen_final_score:  %.2f | " %float(alpha * gen_dissim + beta * gen_sim))
-        
+    for k, (gen_dissim, gen_sim) in enumerate(zip(gen_option_dissim[i], gen_context_sim[i])):
+        print("gen_distracor ",k, ": ", generated_distractor_list[i][k], "\n", "gen_option_dissim: %.2f |" %float(gen_dissim), "gen_context_sim:  %.2f |" %float(gen_sim), "gen_final_score:  %.2f | " %float(alpha * gen_dissim + beta * gen_sim))
+        print("*"*10)
     
     
 
