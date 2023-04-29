@@ -122,12 +122,12 @@ for i in range(10):
     print("CORRECT ANSWER: \n", correct_answer_list[i], "\n")
     for j, (dissim, sim) in enumerate(zip(option_dissim[i],context_sim[i])):
         print("distracor ",j, ": ", incorrect_answer_list[i][j], "\n","option_dissim: %.2f |" %float(dissim), "context_sim:  %.2f |" %float(sim), "final score:  %.2f | " %float(alpha * dissim + beta * sim))
-        print("bleu_score: ", bleu_score[i][j])
+        print("bleu_score: %.2f" %bleu_score[i][j])
         # print(j+1, ": ", incorrect_answer_list[i][j], "\n")
         print("*"*10)
     for k, (gen_dissim, gen_sim) in enumerate(zip(gen_option_dissim[i], gen_context_sim[i])):
         print("gen_distracor ",k, ": ", generated_distractor_list[i][k], "\n", "gen_option_dissim: %.2f |" %float(gen_dissim), "gen_context_sim:  %.2f |" %float(gen_sim), "gen_final_score:  %.2f | " %float(alpha * gen_dissim + beta * gen_sim))
-        print("gen_blue_score: ", gen_bleu_score[i][k])
+        print("gen_blue_score: %.2f" %gen_bleu_score[i][k])
         # print(k+4, ": ", generated_distractor_list[i][k], "\n")
         print("*"*10)
     
