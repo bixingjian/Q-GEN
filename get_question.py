@@ -3,7 +3,7 @@ from question_model import QGModel
 from transformers import T5TokenizerFast as T5Tokenizer
 from context_list import context_list
 
-SOURCE_MAX_TOKEN_LEN = 300
+SOURCE_MAX_TOKEN_LEN = 1024
 TARGET_MAX_TOKEN_LEN = 80
 SEP_TOKEN = '<sep>'
 PT_MODEL_PATH = "./pt_models/t5-small"
@@ -83,8 +83,7 @@ test_context = ''' Perhaps no company embodies the ups and downs of Chinese big 
 Two years ago the online empire seemed unstoppable. More than a billion Chinese were using its ubiquitous services to pay, play and do much else besides. \
 Its video games, such as “League of Legends”, were global hits. \
 Tencent’s market value exceeded $900bn, and the firm was on track to become China’s first trillion-dollar company. \
-Then the Communist Party said, enough. \
-Xi Jinping, China’s paramount leader, decided that big tech’s side-effects, from distracted teenagers to the diversion of capital from strategically important sectors such as semiconductors, were unacceptable. \
+Chinese leaders decided that big tech’s side-effects, from distracted teenagers to the diversion of capital from strategically important sectors such as semiconductors, were unacceptable. \
 Tencent was, along with the rest of China’s once-thriving digital industry, caught up in a sweeping 18-month crackdown. \
 '''
 
@@ -93,14 +92,14 @@ Tencent was, along with the rest of China’s once-thriving digital industry, ca
 
 
 
-# show_test_result()
+show_test_result()
 # show_test_result("Xi Jinping")
 # show_test_result("Tencent")
-# show_test_result("distracting teenagers")
-# show_test_result("side-effects")
+show_test_result("distracting teenagers")
+show_test_result("$900bn")
 # show_test_result("crackdown")
 # show_test_result("suppression")
-# show_test_result("online services")
+show_test_result("online services")
 # show_test_result("Protect her cows from being drowned")
-show_test_result("distracting teenagers, and causing diversion of capital")
+# show_test_result("distracting teenagers, and causing diversion of capital")
 

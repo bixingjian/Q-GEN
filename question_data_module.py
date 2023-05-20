@@ -5,7 +5,7 @@ from transformers import T5TokenizerFast
 from torch.utils.data import Dataset, DataLoader
 
 PT_MODEL_PATH = "./pt_models/t5-small"
-SOURCE_MAX_TOKEN_LEN = 300
+SOURCE_MAX_TOKEN_LEN = 1024
 TARGET_MAX_TOKEN_LEN = 80
 MASKING_CHANCE = 0.3
 SEP_TOKEN = '<sep>' # not using SEP, caused that is already a token in the vocabulary

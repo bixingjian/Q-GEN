@@ -1,135 +1,135 @@
 from context_list import context_list, question_list, correct_answer_list, incorrect_answer_list, generated_distractor_list
-import math
-import re
-from collections import Counter
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 import nltk
 from nltk.tokenize import word_tokenize
+import warnings
+warnings.filterwarnings('ignore') # to ignore warning in 
 
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2") #using a relatively smaller size model from the api
+model = SentenceTransformer('bert-base-nli-mean-tokens') #using a relatively smaller size model from the api
 
 # scores for the original distractor
-option_dissim = []
+option_dissim = [] # [ [ six scores ] ]
 context_sim = []
+sim_score = []
+sim_index = []
+sim_sent = []
 bleu_score = []
 for i in range(10):
-    context = context_list[i]
-    context_sens = nltk.sent_tokenize(context)
-    correct_answer = list(correct_answer_list[i])
-    incorrect_answers = incorrect_answer_list[i] # change here for incorrect and distractor
+    context = context_list[i].replace(".", ". ") 
+    context = context.replace(" .", ". ") 
+    context_sens = nltk.sent_tokenize(context) # [" ", " "]
+    # print(context_sens)
+    # print("========="*20)
+    # for i in range(len(context_sens)):
+    #     print("**********")
+    #     print(context_sens[i])
 
-    # bleu score for the original distractor
-    sent_tokenized = word_tokenize(question_list[i])
-    # temp = []
-    # for _ in range(len(incorrect_answer_list[i])):
-    #     answer_tokenized = word_tokenize(incorrect_answers[_])
-    #     temp_score = nltk.translate.bleu_score.sentence_bleu(sent_tokenized, answer_tokenized, weights=(1, 0, 0, 0), smoothing_function=None)
-    #     temp.append(temp_score)
-    # bleu_score.append(temp)
-    # incorrect_answer_tokenized = [word_tokenize(incorrect_answers[_]) for _ in range(len(incorrect_answers))]
-    # answer_score = nltk.translate.bleu_score.sentence_bleu(incorrect_answer_tokenized, sent_tokenized, weights=(1.0, 0, 0, 0), smoothing_function=None)
+    # bleu score for the original and generated.
     temp = []
-    temp.append(nltk.translate.bleu_score.sentence_bleu(word_tokenize(incorrect_answer_list[i][0]), correct_answer, weights=(1.0, 0, 0, 0)))
-    temp.append(nltk.translate.bleu_score.sentence_bleu(word_tokenize(incorrect_answer_list[i][1]), correct_answer, weights=(1.0, 0, 0, 0)))
-    temp.append(nltk.translate.bleu_score.sentence_bleu(word_tokenize(incorrect_answer_list[i][2]), correct_answer, weights=(1.0, 0, 0, 0)))
+    for j in range(3):
+        temp.append(nltk.translate.bleu_score.sentence_bleu([word_tokenize(incorrect_answer_list[i][j])], word_tokenize(correct_answer_list[i]), weights=(1.0, 0, 0, 0)))
+    for k in range(3):
+        temp.append(nltk.translate.bleu_score.sentence_bleu([word_tokenize(generated_distractor_list[i][k])], word_tokenize(correct_answer_list[i]), weights=(1.0, 0, 0, 0)))
     bleu_score.append(temp)
 
-    # Compute encodings for option in_sim
-    correct_answer_vectors = model.encode(correct_answer_list[i])
-    incorrect_answers_vectors = model.encode(incorrect_answer_list[i])
+    # score for disim
+    sentences = []
+    sentences.append(correct_answer_list[i])
+    for j in range(3):
+        sentences.append(incorrect_answer_list[i][j])
+    for k in range(3):
+        sentences.append(incorrect_answer_list[i][k])
+    sentence_embeddings = model.encode(sentences)
+    res = cosine_similarity([sentence_embeddings[0]], sentence_embeddings[1:])
+    res = res.tolist()
+    option_dissim.append([1-x for x in res[0]])
+    assert len(res[0]) == 6
+    
 
-    cosine_scores1 = util.cos_sim(correct_answer_vectors, incorrect_answers_vectors)
+    # score for context sim
     temp = []
-    for _ in range(len(incorrect_answers_vectors)):
-        temp.append(1 - cosine_scores1[0][_])
-    option_dissim.append(temp)
+    temp_sim_score = []
+    temp_sim_index = []
+    temp_sim_sent = []
+    for j in range(3):
+        sentences = []
+        sentences.append(incorrect_answer_list[i][j])
+        sentences += context_sens
+        sentence_embeddings = model.encode(sentences)
+        res = cosine_similarity([sentence_embeddings[0]], sentence_embeddings[1:])
+        res = res.tolist()
+        res = [[round(x, 3) for x in res[0]]]
+        temp.append(max(res[0]))
+        # print(res[0])
+        temp_sim_score.append(res[0])
+        # print("round_ori: ", i, j+1, "\nindex: ", res[0].index(max(res[0])), "\n", context_sens[res[0].index(max(res[0]))])
+        temp_sim_index.append(res[0].index(max(res[0])))
+        temp_sim_sent.append(context_sens[res[0].index(max(res[0]))])
 
-    # computing 
-    context_sens_vectors = model.encode(context_sens)
-    cosine_scores2 = util.cos_sim(context_sens_vectors, incorrect_answers_vectors)
 
-    temp = []
-    for _ in range(len(incorrect_answers_vectors)):
-        temp_max_score = 0;
-        for __ in range(len(context_sens_vectors)):
-            if cosine_scores2[__][_] > temp_max_score:
-                temp_max_score = cosine_scores2[__][_]
-        temp.append(temp_max_score)
+    for k in range(3):
+        sentences = []
+        sentences.append(generated_distractor_list[i][k])
+        sentences += context_sens
+        sentence_embeddings = model.encode(sentences)
+        res = cosine_similarity([sentence_embeddings[0]], sentence_embeddings[1:])
+        res = res.tolist()
+        res = [[round(x, 3) for x in res[0]]]
+        temp.append(max(res[0]))
+        # print(res)
+        temp_sim_score.append(res[0])
+        # print("round_g: ", i, k+1, "\nindex: ", res[0].index(max(res[0])), "\n",context_sens[res[0].index(max(res[0]))])
+        temp_sim_index.append(res[0].index(max(res[0])))
+        temp_sim_sent.append(context_sens[res[0].index(max(res[0]))])
+
     context_sim.append(temp)
+    sim_score.append(temp_sim_score)
+    sim_index.append(temp_sim_index)
+    sim_sent.append(temp_sim_sent)
+
+        
 
 
-    # print(option_dissim)
-    # print(context_sim)
 
 
-# scores for the generated
-gen_option_dissim = []
-gen_context_sim = []
-gen_bleu_score = []
-for i in range(10):
-    context = context_list[i]
-    context_sens = nltk.sent_tokenize(context)
-    correct_answer = list(correct_answer_list[i])
-    incorrect_answers = generated_distractor_list[i] # change here for incorrect and distractor
-
-    # compute gen bleu score
-    temp = []
-    temp.append(nltk.translate.bleu_score.sentence_bleu(word_tokenize(generated_distractor_list[i][0]), correct_answer, weights=(1.0, 0, 0, 0)))
-    temp.append(nltk.translate.bleu_score.sentence_bleu(word_tokenize(generated_distractor_list[i][1]), correct_answer, weights=(1.0, 0, 0, 0)))
-    temp.append(nltk.translate.bleu_score.sentence_bleu(word_tokenize(generated_distractor_list[i][2]), correct_answer, weights=(1.0, 0, 0, 0)))
-    gen_bleu_score.append(temp)
-
-
-    # Compute encodings for option in_sim
-    correct_answer_vectors = model.encode(correct_answer_list[i])
-    incorrect_answers_vectors = model.encode(generated_distractor_list[i])
-
-    cosine_scores1 = util.cos_sim(correct_answer_vectors, incorrect_answers_vectors)
-    temp = []
-    for _ in range(len(incorrect_answers_vectors)):
-        temp.append(1 - cosine_scores1[0][_])
-    gen_option_dissim.append(temp)
-
-    # computing 
-    context_sens_vectors = model.encode(context_sens)
-    cosine_scores2 = util.cos_sim(context_sens_vectors, incorrect_answers_vectors)
-
-    temp = []
-    for _ in range(len(incorrect_answers_vectors)):
-        temp_max_score = 0;
-        for __ in range(len(context_sens_vectors)):
-            if cosine_scores2[__][_] > temp_max_score:
-                temp_max_score = cosine_scores2[__][_]
-        temp.append(temp_max_score)
-    gen_context_sim.append(temp)
-
-    # print(option_dissim)
-    # print(context_sim)
-
-
-alpha = 0.3
+alpha = 0.5
 beta = 1 - alpha
-
-print(bleu_score)
-print("+++" *50 )
-print(gen_bleu_score)
-
 
 for i in range(10):
     print(i, "*"*30)
     print("CONTEXT: \n", context_list[i], "\n")
     print("QUESTION: \n", question_list[i], "\n")
     print("CORRECT ANSWER: \n", correct_answer_list[i], "\n")
-    for j, (dissim, sim) in enumerate(zip(option_dissim[i],context_sim[i])):
-        print("distracor ",j, ": ", incorrect_answer_list[i][j], "\n","option_dissim: %.2f |" %float(dissim), "context_sim:  %.2f |" %float(sim), "final score:  %.2f | " %float(alpha * dissim + beta * sim))
-        print("bleu_score: %.2f" %bleu_score[i][j])
-        # print(j+1, ": ", incorrect_answer_list[i][j], "\n")
-        print("*"*10)
-    for k, (gen_dissim, gen_sim) in enumerate(zip(gen_option_dissim[i], gen_context_sim[i])):
-        print("gen_distracor ",k, ": ", generated_distractor_list[i][k], "\n", "gen_option_dissim: %.2f |" %float(gen_dissim), "gen_context_sim:  %.2f |" %float(gen_sim), "gen_final_score:  %.2f | " %float(alpha * gen_dissim + beta * gen_sim))
-        print("gen_blue_score: %.2f" %gen_bleu_score[i][k])
-        # print(k+4, ": ", generated_distractor_list[i][k], "\n")
-        print("*"*10)
+    for j, (dissim, sim, bleu, index, score, sent) in enumerate(zip(option_dissim[i],context_sim[i], bleu_score[i], sim_index[i], sim_score[i], sim_sent[i])):
+        if (j <3):
+            print("-- original ",j+1, ": ", incorrect_answer_list[i][j])
+            print("option_dissim: %.3f |" %float(dissim), "context_sim:  %.3f |" %float(sim), "final score:  %.3f | " %float(alpha * dissim + beta * sim))
+            print("bleu_score: %.3f" %bleu)
+            print("sim index: ", index)
+            print("sim score: ", score)
+            print("sim sent: ", sent)
+            print("*"*10)   
+        else:
+            print("-- generated ",j-2, ": ", generated_distractor_list[i][j-3])
+            print("option_dissim: %.3f |" %float(dissim), "context_sim:  %.3f |" %float(sim), "final score:  %.3f | " %float(alpha * dissim + beta * sim))
+            print("bleu_score: %.3f" %bleu)
+            print("sim index: ", index)
+            print("sim score: ", score)
+            print("sim sent: ", sent)
+            print("*"*10)   
+
+# res = 0
+# for i in range(10):
+#     res += bleu_score[i][2]
+
+# print(res/10)
+
     
     
+
+
+
+
+
 

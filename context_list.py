@@ -51,8 +51,35 @@ generated_distractor_list = [['Help her to get up early', 'Help her to find a jo
                              ['was very busy with his study', 'kissed his mother hello', 'was very hard at math'], 
                              ['Tommy kissed his mother hello', 'Tommy was a catholic school', 'Tommy was not good at math'], 
                              ['mistakes are not easy', 'mistakes can be made easily', 'mistakes are not easy to make']]
+# import re
+# from nltk import tokenize
+# import nltk
+# print(context_list[3])
+# print(context_list[0].split("."))
+# print("***"*50)
+# print(context_list[9])
+# print("***"*50)
+# print(tokenize.sent_tokenize(context_list[9]))
+# print("***"*50)
+# res = [str(x) for x in re.split("(?<!\.[a-zA-Z])\.(?![a-zA-Z]\.)", context_list[9]) if x!=""]
+# res = [x.replace("\n", "") for x in res]
+# print(len(res))
+# for i in range(len(res)):
+#     print(res[i])
+#     print("*****"*10)
+# print("==="*50)
+# passage = context_list[9].replace(".", ". ") 
+# passage = passage.replace(" .", ". ") 
+# print(passage)
+# print("==="*50)
 
-# print(context_list[0])
+# a = nltk.sent_tokenize(passage)
+# for i in range(len(a)):
+#     print(a[i])
+#     print("*****"*10)
+# print(context_list[9])
+# print(context_list[9].split("."))
 # print(question_list[0])
 # print(correct_answer_list[0])
 # print(incorrect_answer_list[0])
+
