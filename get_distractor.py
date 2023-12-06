@@ -81,9 +81,9 @@ best_model.eval()
 
 print("--------")
 
-def generate(qgmodel: QGModel, answer: str, context: str) -> str:
+def generate(qgmodel: QGModel, answer: str, context: str, question) -> str:
     source_encoding = tokenizer(
-        '{} {} {}'.format(answer, SEP_TOKEN, context),
+        '{} {} {}'.format(answer, SEP_TOKEN, question, SEP_TOKEN, context),
         max_length=SOURCE_MAX_TOKEN_LEN,
         padding='max_length',
         truncation=True,
@@ -129,40 +129,40 @@ test_df = pd.read_csv("./dataset/race/race_test_df.csv")
 sample = test_df.iloc[42]
 
 
-generated_distractor_with_special = []
-for i in range(10):
-    generated = generate(best_model, correct_answer_list[i], context_list[i])
-    generated_distractor_with_special.append(generated)
-    show_result(generated, correct_answer_list[i], context_list[i], [test_df.iloc[i][3], test_df.iloc[i][4], test_df.iloc[i][5]])
+# generated_distractor_with_special = []
+# for i in range(10):
+#     generated = generate(best_model, correct_answer_list[i], context_list[i])
+#     generated_distractor_with_special.append(generated)
+#     show_result(generated, correct_answer_list[i], context_list[i], [test_df.iloc[i][3], test_df.iloc[i][4], test_df.iloc[i][5]])
 
-print(generated_distractor_with_special)
+# print(generated_distractor_with_special)
 
-generated_distractor = [] # without sepcial tokens
-for i in range(len(generated_distractor_with_special)):
-    temp = []
-    s = generated_distractor_with_special[i]
-    delimiter = '<pad> '
-    substrings = s.split(delimiter)
-    substring_1 = substrings[1].split('<distractor_1> ')[0].rstrip()
-    substring_2 = substrings[1].split('<distractor_2> ')[0].split('<distractor_1>')[1].rstrip()
-    substring_3 = substrings[1].split('</s>')[0].split('<distractor_2>')[1].rstrip()
-    temp.append(substring_1)
-    temp.append(substring_2)
-    temp.append(substring_3)
-    generated_distractor.append(temp)
+# generated_distractor = [] # without sepcial tokens
+# for i in range(len(generated_distractor_with_special)):
+#     temp = []
+#     s = generated_distractor_with_special[i]
+#     delimiter = '<pad> '
+#     substrings = s.split(delimiter)
+#     substring_1 = substrings[1].split('<distractor_1> ')[0].rstrip()
+#     substring_2 = substrings[1].split('<distractor_2> ')[0].split('<distractor_1>')[1].rstrip()
+#     substring_3 = substrings[1].split('</s>')[0].split('<distractor_2>')[1].rstrip()
+#     temp.append(substring_1)
+#     temp.append(substring_2)
+#     temp.append(substring_3)
+#     generated_distractor.append(temp)
 
-print(generated_distractor)
+# print(generated_distractor)
 
-# test_context = ''' Perhaps no company embodies the ups and downs of Chinese big tech better than its biggest tech firm of all—Tencent. \
-# Two years ago the online empire seemed unstoppable. More than a billion Chinese were using its ubiquitous services to pay, play and do much else besides. \
-# Its video games, such as “League of Legends”, were global hits. \
-# Tencent’s market value exceeded $900bn, and the firm was on track to become China’s first trillion-dollar company. \
-# Then the Communist Party said, enough. \
-# Xi Jinping, China’s paramount leader, decided that big tech’s side-effects, from distracted teenagers to the diversion of capital from strategically important sectors such as semiconductors, were unacceptable. \
-# Tencent was, along with the rest of China’s once-thriving digital industry, caught up in a sweeping 18-month crackdown. \
-# '''
+test_context = ''' Perhaps no company embodies the ups and downs of Chinese big tech better than its biggest tech firm of all—Tencent. \
+Two years ago the online empire seemed unstoppable. More than a billion Chinese were using its ubiquitous services to pay, play and do much else besides. \
+Its video games, such as “League of Legends”, were global hits. \
+Tencent’s market value exceeded $900bn, and the firm was on track to become China’s first trillion-dollar company. \
+Chinese leaders decided that big tech’s side-effects, from distracted teenagers to the diversion of capital from strategically important sectors such as semiconductors, were unacceptable. \
+Tencent was, along with the rest of China’s once-thriving digital industry, caught up in a sweeping 18-month crackdown. \
+'''
 
-# # test_context = context_list[2]
+# test_context = context_list[2]
 
-# test_correct_answer = "distracting teenagers, and causing diversion of capital"
-
+question = "What did Tencet do for Chinese people?"
+test_correct_answer = "Providing ubiquitous services to pay, play and do much else besides"
+print(generate(best_model, test_correct_answer, test_context, question))

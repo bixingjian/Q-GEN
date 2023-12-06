@@ -33,7 +33,7 @@ def create_dataset(dataset_split):
             'question': cur_question,
             'answer_text': cur_answer_string
         })
-        counter += 1
+        # counter += 1
         # print("++++++", counter)
 
 
